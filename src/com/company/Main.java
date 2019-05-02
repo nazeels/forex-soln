@@ -3,11 +3,16 @@ package com.company;
 import java.util.*;
 
 public class Main {
+    public static TreeMap<String, Integer> mapDecPlaces = new TreeMap<>();
+    public static TreeMap<Integer, String> mapIdxToCtry = new TreeMap<>();
+    public static TreeMap<String,Integer> mapCtryToIdx = new TreeMap<>();
+    public static TreeMap<String, Double> pairRateMap = new TreeMap<>();
+    public static String[][] crossMat;
+
 
     public static void main(String[] args) {
 
         //TreeMap - will save items sorted and faster retrieval
-        TreeMap<String, Integer> mapDecPlaces = new TreeMap<>();
         mapDecPlaces.put("AUD", 2);
         mapDecPlaces.put("CAD", 2);
         mapDecPlaces.put("CNY", 2);
@@ -20,15 +25,15 @@ public class Main {
         mapDecPlaces.put("NZD", 2);
         mapDecPlaces.put("USD", 2);
 
-        TreeMap<Integer, String> mapColRowName = new TreeMap<>();
+
         Integer idx = 0;
         for (Map.Entry<String, Integer> it : mapDecPlaces.entrySet()) {
 //        mapDecPlaces.keySet().forEach(it->{
-            mapColRowName.put(idx, it.getKey());
+            mapIdxToCtry.put(idx, it.getKey());
+            mapCtryToIdx.put(it.getKey(),idx);
             idx = idx + 1;
         }
 
-        TreeMap<String, Double> pairRateMap = new TreeMap<>();
         pairRateMap.put("AUDUSD", 0.8371);
         pairRateMap.put("CADUSD", 0.8711);
         pairRateMap.put("CNYUSD", 6.1715);
@@ -48,11 +53,11 @@ public class Main {
 
         // 2D- Array - cross - via matrix
         int countCurrency = mapDecPlaces.size();
-        String[][] crossMat = new String[countCurrency][countCurrency];
+        crossMat = new String[countCurrency][countCurrency];
         for (int row = 0; row < countCurrency; row++) {
             for (int col = 0; col < countCurrency; col++) {
-                String rowName = mapColRowName.get(row);
-                String colName = mapColRowName.get(col);
+                String rowName = mapIdxToCtry.get(row);
+                String colName = mapIdxToCtry.get(col);
                 String combined = rowName + colName;
                 String combinedInv = colName + rowName;
                 if (row == col) {
@@ -72,8 +77,6 @@ public class Main {
                     }
                 }
             }
-//            System.out.println(mapColRowName.get(row));
-//            System.out.println(Arrays.deepToString(crossMat[row]));
         }
         for (int row = 0; row < countCurrency; row++) {
             for (int col = 0; col < countCurrency; col++) {
@@ -81,8 +84,55 @@ public class Main {
                     crossMat[row][col] = crossMat[col][row];
                 }
             }
-            System.out.println(mapColRowName.get(row));
-            System.out.println(Arrays.deepToString(crossMat[row]));
+            System.out.print(mapIdxToCtry.get(row)+ " - ");
+            System.out.print(Arrays.deepToString(crossMat[row]));
+            System.out.println("\n");
         }
+
+        calculateAndDisplayResult("AUD", 100.00, "USD");
+        calculateAndDisplayResult("AUD", 100.00, "AUD");
+        calculateAndDisplayResult("AUD", 100.00, "DKK");
+        calculateAndDisplayResult("JPY", 100.00, "USD");
+
+
     }
+
+    private static void calculateAndDisplayResult(String inputCurrency, double inputValue, String termCur) {
+        result = inputValue;
+        getResult(inputCurrency, termCur);
+        String displayMsg = String.format("%s %f = %s %f",inputCurrency, inputValue, termCur, result);
+        System.out.println(displayMsg);
+
+
+    }
+
+    private static double result = 0;
+    private static String destCur ="";
+    private static double getResult(String inputCurrency, String termCur) {
+        String convFlag = crossMat[mapCtryToIdx.get(inputCurrency)][mapCtryToIdx.get(termCur)];
+//        System.out.println("Conversion Type: " + convFlag);
+//        double result = inputValue;
+        if(convFlag.equals("D")) {
+            Double termConversion = pairRateMap.get(inputCurrency + termCur);
+            result = result * termConversion;
+        }
+        else if(convFlag.equals("Inv")){
+            Double termConversion = pairRateMap.get(termCur + inputCurrency);
+            result = result * (1/termConversion);
+        }
+        else if(convFlag.equals("1:1")){
+//            re = result;
+        }
+        else {
+            while (!destCur.equals(termCur)){
+                destCur = crossMat[mapCtryToIdx.get(inputCurrency)][mapCtryToIdx.get(termCur)];
+                if(destCur.length() == 1)
+                    destCur = termCur;
+                getResult(inputCurrency,destCur);
+                inputCurrency = destCur;
+            }
+        }
+        return result;
+    }
+
 }
