@@ -7,7 +7,6 @@ public class Main {
 
 
     public static void main(String[] args) {
-        System.out.println(Double.valueOf("100.00001"));
 
         TreeMap<String, Integer> mapDecPlaces = new TreeMap<>();
         TreeMap<String, Double> pairRateMap = new TreeMap<>();
