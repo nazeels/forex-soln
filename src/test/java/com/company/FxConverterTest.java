@@ -8,8 +8,6 @@ import org.powermock.reflect.Whitebox;
 
 import java.util.TreeMap;
 
-import static org.junit.Assert.*;
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(fullyQualifiedNames = "com.company.FxConverter")
 public class FxConverterTest {
@@ -19,7 +17,6 @@ public class FxConverterTest {
     public void setUp() throws Exception {
         TreeMap<String, Integer> mapDecPlaces = new TreeMap<>();
         TreeMap<String, Double> pairRateMap = new TreeMap<>();
-        //TreeMap - will save items sorted and faster retrieval
         mapDecPlaces.put("AUD", 2);
         mapDecPlaces.put("CAD", 2);
         mapDecPlaces.put("CNY", 2);
@@ -48,25 +45,42 @@ public class FxConverterTest {
     }
 
     @org.junit.Test
-    public void calculateAndDisplayResult() throws Exception {
+    public void calculateAndDisplayResult_direct_conversion() throws Exception {
 
-        fxConverter.calculateAndDisplayResult("AUD", 100.00, "USD");
-        fxConverter.calculateAndDisplayResult("AUD", 100.00, "AUD");
-        fxConverter.calculateAndDisplayResult("AUD", 100.00, "DKK");
-        fxConverter.calculateAndDisplayResult("JPY", 100.00, "USD");
+        String result = fxConverter.calculateAndDisplayResult("AUD", 100.00, "USD");
+        Assert.assertEquals("AUD 100.00 = USD 83.71", result);
+    }
+
+    @org.junit.Test
+    public void calculateAndDisplayResult_1_isto_1() throws Exception {
+
+        String result = fxConverter.calculateAndDisplayResult("AUD", 100.00, "AUD");
+        Assert.assertEquals("AUD 100.00 = AUD 100.00", result);
+    }
+
+    @org.junit.Test
+    public void calculateAndDisplayResult_chained_conversion() throws Exception {
+        String result = fxConverter.calculateAndDisplayResult("AUD", 100.00, "DKK");
+        Assert.assertEquals("AUD 100.00 = DKK 505.76", result);
+    }
+
+    @org.junit.Test
+    public void calculateAndDisplayResult_for_jpy() throws Exception {
+        String result = fxConverter.calculateAndDisplayResult("JPY", 100.00, "USD");
+        Assert.assertEquals("JPY 100 = USD 0.83", result);
     }
 
 
     @org.junit.Test
     public void getResultFormattedString_double_decimal() throws Exception {
         String result = Whitebox.invokeMethod(fxConverter, "getResultFormattedString", "AUD", "USD");
-        Assert.assertEquals("%s %.2f = %s %.2f",result);
+        Assert.assertEquals("%s %.2f = %s %.2f", result);
     }
 
     @org.junit.Test
     public void getResultFormattedString_zero_decimal() throws Exception {
         String result = Whitebox.invokeMethod(fxConverter, "getResultFormattedString", "AUD", "JPY");
-        Assert.assertEquals("%s %.2f = %s %.0f",result);
+        Assert.assertEquals("%s %.2f = %s %.0f", result);
     }
 
 }

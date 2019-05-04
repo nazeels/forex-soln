@@ -23,12 +23,13 @@ public class FxConverter {
         createCrossMatrix(mapDecPlaces, pairRateMap);
     }
 
-    public void calculateAndDisplayResult(String inputCurrency, Double inputValue, String termCur) {
+    public String calculateAndDisplayResult(String inputCurrency, Double inputValue, String termCur) {
         result = inputValue;
         try {
             getResult(inputCurrency, termCur);
             String displayMsg = String.format(getResultFormattedString(inputCurrency, termCur), inputCurrency, inputValue, termCur, result);
             System.out.println(displayMsg);
+            return displayMsg;
         } catch (Exception e) {
             throw new ForExException(String.format("Unable to find rate for %s/%s", inputCurrency, termCur), e);
         }
