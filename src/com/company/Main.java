@@ -3,15 +3,14 @@ package com.company;
 import java.util.*;
 
 public class Main {
-    public static TreeMap<String, Integer> mapDecPlaces = new TreeMap<>();
-    public static TreeMap<Integer, String> mapIdxToCtry = new TreeMap<>();
-    public static TreeMap<String,Integer> mapCtryToIdx = new TreeMap<>();
-    public static TreeMap<String, Double> pairRateMap = new TreeMap<>();
-    public static String[][] crossMat;
+
 
 
     public static void main(String[] args) {
+        System.out.println(Double.valueOf("100.00001"));
 
+        TreeMap<String, Integer> mapDecPlaces = new TreeMap<>();
+        TreeMap<String, Double> pairRateMap = new TreeMap<>();
         //TreeMap - will save items sorted and faster retrieval
         mapDecPlaces.put("AUD", 2);
         mapDecPlaces.put("CAD", 2);
@@ -25,15 +24,6 @@ public class Main {
         mapDecPlaces.put("NZD", 2);
         mapDecPlaces.put("USD", 2);
 
-
-        Integer idx = 0;
-        for (Map.Entry<String, Integer> it : mapDecPlaces.entrySet()) {
-//        mapDecPlaces.keySet().forEach(it->{
-            mapIdxToCtry.put(idx, it.getKey());
-            mapCtryToIdx.put(it.getKey(),idx);
-            idx = idx + 1;
-        }
-
         pairRateMap.put("AUDUSD", 0.8371);
         pairRateMap.put("CADUSD", 0.8711);
         pairRateMap.put("CNYUSD", 6.1715);
@@ -45,84 +35,32 @@ public class Main {
         pairRateMap.put("EURDKK", 7.4405);
         pairRateMap.put("EURNOK", 8.6651);
 
-        TreeMap<String, String> mapCurToCur = new TreeMap<>();
-        pairRateMap.keySet().forEach(it -> {
-            mapCurToCur.put(it.substring(0, 2), it.substring(3, 5));
-        });
+        FxConverter fxConverter = new FxConverter(mapDecPlaces,pairRateMap);
 
-        // 2D- Array - cross - via matrix
-        int countCurrency = mapDecPlaces.size();
-        crossMat = new String[countCurrency][countCurrency];
-        for (int row = 0; row < countCurrency; row++) {
-            for (int col = 0; col < countCurrency; col++) {
-                String rowName = mapIdxToCtry.get(row);
-                String colName = mapIdxToCtry.get(col);
-                String combined = rowName + colName;
-                String combinedInv = colName + rowName;
-                if (row == col) {
-                    crossMat[row][col] = "1:1";
-                } else if (pairRateMap.get(combined) != null) {
-                    crossMat[row][col] = "D";
-                } else if (pairRateMap.get(combinedInv) != null) {
-                    crossMat[row][col] = "Inv";
-                } else {
+        fxConverter.calculateAndDisplayResult("AUD", 100.00, "USD");
+        fxConverter.calculateAndDisplayResult("AUD", 100.00, "AUD");
+        fxConverter.calculateAndDisplayResult("AUD", 100.00, "DKK");
+        fxConverter.calculateAndDisplayResult("JPY", 100.00, "USD");
 
-                    long countOfRowOccurence = pairRateMap.keySet().stream().filter(it -> it.contains(rowName)).count();
-                    if (countOfRowOccurence == 1) {
-                        Optional<String> first = pairRateMap.keySet().stream().filter(it -> it.contains(rowName)).findFirst();
-                        crossMat[row][col] = first.get().replace(rowName, "");
-                    } else {
-                        String tmpColName = mapIdxToCtry.get(col);
-                        long tmpCount = pairRateMap.keySet().stream().filter(it -> it.contains(tmpColName)).count();
-                        if(tmpCount > 1)
-                            throw new RuntimeException("Not possible");
-                        Optional<String> first = pairRateMap.keySet().stream().filter(it -> it.contains(tmpColName )).findFirst();
-                        crossMat[row][col] = first.get().replace(tmpColName, "");
-                        continue;
-                    }
-                }
+
+        System.out.println("use this AUD 100.00 in USD");
+
+        Scanner in = new Scanner(System.in);
+
+        while (in.hasNext()) {
+            String s = in.nextLine();
+            StringTokenizer tokenizer = new StringTokenizer(s);
+            String[] words = new String[4];
+            int idx = 0;
+            while (tokenizer.hasMoreTokens()){
+                words[idx] = tokenizer.nextToken();
+                idx++;
             }
-            System.out.print(mapIdxToCtry.get(row)+ " - ");
-            System.out.print(Arrays.deepToString(crossMat[row]));
-            System.out.println("\n");
+            fxConverter.calculateAndDisplayResult(words[0],Double.valueOf(words[1]),words[3]);
         }
-        calculateAndDisplayResult("AUD", 100.00, "USD");
-        calculateAndDisplayResult("AUD", 100.00, "AUD");
-        calculateAndDisplayResult("AUD", 100.00, "DKK");
-        calculateAndDisplayResult("JPY", 100.00, "USD");
+
     }
 
-    private static void calculateAndDisplayResult(String inputCurrency, double inputValue, String termCur) {
-        result = inputValue;
-        getResult(inputCurrency, termCur);
-        String displayMsg = String.format("%s %f = %s %f",inputCurrency, inputValue, termCur, result);
-        System.out.println(displayMsg);
     }
 
-    private static double result = 0;
-    private static String destCur ="";
-    private static double getResult(String inputCurrency, String termCur) {
-        String convFlag = crossMat[mapCtryToIdx.get(inputCurrency)][mapCtryToIdx.get(termCur)];
-        if(convFlag.equals("D")) {
-            Double termConversion = pairRateMap.get(inputCurrency + termCur);
-            result = result * termConversion;
-        }
-        else if(convFlag.equals("Inv")){
-            Double termConversion = pairRateMap.get(termCur + inputCurrency);
-            result = result * (1/termConversion);
-        }
-        else if(convFlag.equals("1:1")){
-//            re = result;
-        }
-        else {
-            while (!destCur.equals(termCur)){
-                destCur = crossMat[mapCtryToIdx.get(inputCurrency)][mapCtryToIdx.get(termCur)];
-                if(destCur.length() == 1)
-                    destCur = termCur;
-                getResult(inputCurrency,destCur);
-                inputCurrency = destCur;
-            }
-        }
-        return result;
-    }
-}
+
