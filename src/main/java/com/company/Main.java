@@ -43,20 +43,26 @@ public class Main {
         fxConverter.calculateAndDisplayResult("JPY", 100.00, "USD");
 
 
-        System.out.println("use this AUD 100.00 in USD");
+        System.out.println("Ex: AUD 100.00 in USD");
 
         Scanner in = new Scanner(System.in);
 
         while (in.hasNext()) {
-            String s = in.nextLine();
-            StringTokenizer tokenizer = new StringTokenizer(s);
-            String[] words = new String[4];
-            int idx = 0;
-            while (tokenizer.hasMoreTokens()){
-                words[idx] = tokenizer.nextToken();
-                idx++;
+            try {
+                String s = in.nextLine();
+                StringTokenizer tokenizer = new StringTokenizer(s);
+                String[] words = new String[4];
+                int idx = 0;
+                while (tokenizer.hasMoreTokens()) {
+                    words[idx] = tokenizer.nextToken();
+                    idx++;
+                }
+                fxConverter.calculateAndDisplayResult(words[0], Double.valueOf(words[1]), words[3]);
+                System.out.println("Please enter: ");
             }
-            fxConverter.calculateAndDisplayResult(words[0],Double.valueOf(words[1]),words[3]);
+            catch (ForExException ex){
+                System.out.println(ex.errorCode);
+            }
         }
 
     }

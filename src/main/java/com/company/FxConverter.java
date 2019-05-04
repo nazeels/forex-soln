@@ -25,9 +25,14 @@ public class FxConverter {
 
     public void calculateAndDisplayResult(String inputCurrency, Double inputValue, String termCur) {
         result = inputValue;
-        getResult(inputCurrency, termCur);
-        String displayMsg = String.format("%s %f = %s %f", inputCurrency, inputValue, termCur, result);
-        System.out.println(displayMsg);
+        try {
+            getResult(inputCurrency, termCur);
+            String displayMsg = String.format("%s %f = %s %f", inputCurrency, inputValue, termCur, result);
+            System.out.println(displayMsg);
+        }
+        catch (Exception e){
+            throw new ForExException(String.format("Unable to find rate for %s/%s",inputCurrency,termCur),e);
+        }
     }
 
     private void createCrossMatrix(TreeMap<String, Integer> mapDecPlaces, TreeMap<String, Double> pairRateMap) {
@@ -81,24 +86,26 @@ public class FxConverter {
     }
 
 
-    private void getResult(String inputCurrency, String termCur) {
-        String convFlag = crossMat[mapCtryToIdx.get(inputCurrency)][mapCtryToIdx.get(termCur)];
-        if (convFlag.equals(CONVERSION_DIRECT)) {
-            Double termConversion = pairRateMap.get(inputCurrency + termCur);
-            result = result * termConversion;
-        } else if (convFlag.equals(CONVERSION_INV)) {
-            Double termConversion = pairRateMap.get(termCur + inputCurrency);
-            result = result * (1 / termConversion);
-        } else if (convFlag.equals(CONVERSION_ONE_TO_ONE)) {
-            //noop
-        } else {
-            while (!destCur.equals(termCur)) {
-                destCur = crossMat[mapCtryToIdx.get(inputCurrency)][mapCtryToIdx.get(termCur)];
-                if (destCur.length() == 1)
-                    destCur = termCur;
-                getResult(inputCurrency, destCur);
-                inputCurrency = destCur;
+    private void getResult(String inputCurrency, String termCur) throws ForExException {
+
+            String convFlag = crossMat[mapCtryToIdx.get(inputCurrency)][mapCtryToIdx.get(termCur)];
+            if (convFlag.equals(CONVERSION_DIRECT)) {
+                Double termConversion = pairRateMap.get(inputCurrency + termCur);
+                result = result * termConversion;
+            } else if (convFlag.equals(CONVERSION_INV)) {
+                Double termConversion = pairRateMap.get(termCur + inputCurrency);
+                result = result * (1 / termConversion);
+            } else if (convFlag.equals(CONVERSION_ONE_TO_ONE)) {
+                //noop
+            } else {
+                while (!destCur.equals(termCur)) {
+                    destCur = crossMat[mapCtryToIdx.get(inputCurrency)][mapCtryToIdx.get(termCur)];
+                    if (destCur.length() == 1)
+                        destCur = termCur;
+                    getResult(inputCurrency, destCur);
+                    inputCurrency = destCur;
+                }
             }
-        }
+
     }
 }
