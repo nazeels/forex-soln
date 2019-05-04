@@ -1,11 +1,20 @@
 package com.company;
 
+import org.junit.Assert;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
+
 import java.util.TreeMap;
 
 import static org.junit.Assert.*;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(fullyQualifiedNames = "com.company.FxConverter")
 public class FxConverterTest {
     FxConverter fxConverter;
+
     @org.junit.Before
     public void setUp() throws Exception {
         TreeMap<String, Integer> mapDecPlaces = new TreeMap<>();
@@ -34,7 +43,7 @@ public class FxConverterTest {
         pairRateMap.put("EURDKK", 7.4405);
         pairRateMap.put("EURNOK", 8.6651);
 
-        fxConverter = new FxConverter(mapDecPlaces,pairRateMap);
+        fxConverter = new FxConverter(mapDecPlaces, pairRateMap);
 
     }
 
@@ -45,6 +54,19 @@ public class FxConverterTest {
         fxConverter.calculateAndDisplayResult("AUD", 100.00, "AUD");
         fxConverter.calculateAndDisplayResult("AUD", 100.00, "DKK");
         fxConverter.calculateAndDisplayResult("JPY", 100.00, "USD");
+    }
+
+
+    @org.junit.Test
+    public void getResultFormattedString_double_decimal() throws Exception {
+        String result = Whitebox.invokeMethod(fxConverter, "getResultFormattedString", "AUD", "USD");
+        Assert.assertEquals("%s %.2f = %s %.2f",result);
+    }
+
+    @org.junit.Test
+    public void getResultFormattedString_zero_decimal() throws Exception {
+        String result = Whitebox.invokeMethod(fxConverter, "getResultFormattedString", "AUD", "JPY");
+        Assert.assertEquals("%s %.2f = %s %.0f",result);
     }
 
 }
